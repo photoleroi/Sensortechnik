@@ -1,0 +1,9 @@
+Diagramm kippen auf y vs verschieben in x
+Kalman filter vs ungefiltert
+
+y winkel über die zeit, plotten für kalman und ohne kalman
+
+
+
+warum ist kalman filter nicht schneller
+constant Velocity Modell 

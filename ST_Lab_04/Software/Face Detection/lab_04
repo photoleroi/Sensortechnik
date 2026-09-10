@@ -1,0 +1,104 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '2' 
+
+from djitellopy import Tello
+import cv2
+import time
+from deepface import DeepFace
+
+# Notfall-Stop durch KeyboardInterrupt
+try:
+    # Initialisierung der Tello-Drohne
+    tello = Tello()
+    tello.connect()
+    print(f"Batterie: {tello.get_battery()}%")
+    
+    # Starten des Videostreams
+    tello.streamon()
+    frame_read = tello.get_frame_read()
+
+    # Quadcopter startet und steigt auf 1,50 m
+    tello.takeoff()
+    tello.move_up(150)  # 1,50 m
+    
+    # Variablen für die Gesichtserkennung
+    face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    detected_face = None
+    face_locked = False
+    face_positioned = False
+    face_centered = False
+    face_lock_time = 0
+
+    while True:
+        # Bild abrufen und in korrekter Farbdarstellung anzeigen
+        frame = frame_read.frame
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Gesichtserkennung
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = face_cascade.detectMultiScale(gray_frame, scaleFactor=1.2, minNeighbors=5)
+
+        for (x, y, w, h) in faces:
+            # Bounding Box um das Gesicht zeichnen
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+            # Wenn noch kein Gesicht fixiert wurde, fixiere das erste Gesicht
+            if not face_locked:
+                detected_face = (x, y, w, h)
+                face_locked = True
+                print("Gesicht erkannt und fixiert.")
+            
+            # Prüfen, ob das Gesicht mittig positioniert ist
+            frame_center_x = frame.shape[1] // 2
+            face_center_x = x + w // 2
+
+            if abs(face_center_x - frame_center_x) < 20:  # Toleranz von 20 Pixeln
+                face_positioned = True
+                face_lock_time = time.time()
+            else:
+                face_positioned = False
+
+            # Quadcopter dreht sich, bis das Gesicht mittig ist
+            if not face_positioned:
+                if face_center_x < frame_center_x:
+                    tello.rotate_counter_clockwise(20)
+                else:
+                    tello.rotate_clockwise(20)
+
+            # Gesicht verharrt mittig für 3 Sekunden
+            if face_positioned and time.time() - face_lock_time > 3:
+                face_centered = True
+                print("Gesicht mittig positioniert.")
+
+            break
+
+        # Gesicht gefunden und mittig -> Fotos aufnehmen
+        if face_centered:
+            for i in range(2):
+                time.sleep(2)  # 2 Sekunden warten
+                photo = frame_read.frame
+                photo_path = f"photo_{i + 1}.jpg"
+                cv2.imwrite(photo_path, photo)
+                print(f"Foto gespeichert: {photo_path}")
+            break
+
+        # Bild anzeigen
+        cv2.imshow("Tello Video Stream", frame)
+
+        # 'q' zum Beenden
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Quadcopter landen
+    tello.land()
+
+except KeyboardInterrupt:
+    # Notfall-Stop
+    print("Notfall-Stop! Drohne wird gelandet.")
+    tello.land()
+
+finally:
+    # Aufräumen
+    tello.streamoff()
+    tello.end()
+    cv2.destroyAllWindows()
