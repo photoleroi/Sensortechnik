@@ -26,7 +26,7 @@ Der Aufbau aus dem vorherigen Laborinkrement (Betriebszustandsmonitoring) wird w
 
 ## Hardware und Schaltplan
 
-![Schaltplan der Fernbedienung](images/Schaltplan_drawio.png)
+![Schaltplan der Fernbedienung](images/Schaltplan.drawio.png)
 
 | Komponente | Anschluss am ESP32 |
 |---|---|
