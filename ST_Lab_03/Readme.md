@@ -18,7 +18,7 @@ Ein Quadcopter wird über eine selbst entwickelte, ESP32-basierte Fernbedienung 
 
 Der Aufbau aus dem vorherigen Laborinkrement (Betriebszustandsmonitoring) wird wiederverwendet:
 
-![Blockdiagramm des Aufbaus](images/blockdia_drawio.png)
+![Blockdiagramm des Aufbaus](./images/blockdia_drawio.png)
 
 - Die Fernbedienung (**ESP32**) ist per **USB** mit dem Computer verbunden.
 - Auf dem ESP32 läuft ein Arduino-Programm, das die Messdaten an den Computer weiterleitet.
@@ -26,7 +26,7 @@ Der Aufbau aus dem vorherigen Laborinkrement (Betriebszustandsmonitoring) wird w
 
 ## Hardware und Schaltplan
 
-![Schaltplan der Fernbedienung](images/Schaltplan_drawio.png)
+![Schaltplan der Fernbedienung](./images/Schaltplan_drawio.png)
 
 | Komponente | Anschluss am ESP32 |
 |---|---|
